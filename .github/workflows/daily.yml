@@ -1,0 +1,27 @@
+   name: Daily FX load
+
+   on:
+     schedule:
+       - cron: "30 16 * * 1-5"
+     workflow_dispatch:
+
+   permissions:
+     contents: write
+
+   jobs:
+     run:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: actions/setup-python@v5
+           with:
+             python-version: "3.12"
+         - run: pip install -r requirements.txt
+         - run: python pipeline.py
+         - name: Commit updated database
+           run: |
+             git config user.name "github-actions"
+             git config user.email "actions@github.com"
+             git add fx.db
+             git diff --staged --quiet || git commit -m "Update FX data"
+             git push
